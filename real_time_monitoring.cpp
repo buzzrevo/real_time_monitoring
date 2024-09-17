@@ -28,52 +28,6 @@ client ws_client;
 nhlohmann::json latest_print_stats;
 std::mutex latest_print_stats_mutex;
 
-void on_message(websocketpp::connection_hdl hdl, client::message_ptr msg) {
-    nhlohmann::json data = nlohmann::json::parse(msg->get_payload());
-    if (data.contains("result")) {
-        //latest_print_stats['filament_used'] = data["result"]["jobs"][0][''filament_used'];
-        std::lock_guard<std::mutex> lock(latest_print_stats_mutex);
-        latest_print_stats = data["result"]["jobs"][0];
-    } 
-    // else {
-    //     latest_print_stats["filament_used"] = std::nan("")
-    // }
-    ws.client.send(hdl,nlohmann::json({{"jsonrpc", "2.0"}, {"method", "server.history.list"}, {"params", {}}, {"id", 5656}}).dump(),websocketpp::frame::opcode::text);
-}
-
-void run_websocket_client() {
-    // Intialize ASIO transport policy
-    ws_client.init_asio();
-
-    // Set the message handler
-    ws_client.set_message_handler(&on_message);
-
-    // Set the open handler to print a message
-    ws_client.set_open_handler([](websocketpp::connection_hdl hdl) {
-        std::cout << "Connected to the server" << std::endl;
-    });
-
-    // Also do so for closing
-    ws_client.set_close_handler([](websocketpp::connection_hdl hdl) {
-        std::cout << "Disconnected from the server" << std::endl;
-    });
-
-    // Create a connection to the server
-    std::string uri = "ws://192.168.1.20:7125/websocket";
-    websocketpp::lib::error_code ec;
-    client::connection_ptr con = ws_client.get_connection(uri, ec);
-    if (ec) {
-        std::cout << "Could not create connection because: " << ec.message() << std::endl;
-        return;
-    }
-
-    // Connect to the server
-    ws_client.connect(con);
-
-    // Start ASIO event loop; this will block until the connection is closed
-    ws_client.run();
-}
-
 struct ReadoutInfo {
     std::string mp4_filename;
     std::vector<double> filament_used_by_image;

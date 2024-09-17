@@ -45,7 +45,7 @@ def on_message(ws, message):
     #print(f"Received message: {message}")  # Debugging statement
     data = json.loads(message)
     if 'result' in data.keys():
-        data = data['result']['jobs'][0] #json.loads(message)
+        data = data['result']['print_stats'] #json.loads(message)
         #print("before lock: ",data)
         with lock:
             #print("request with id 5656 received")
